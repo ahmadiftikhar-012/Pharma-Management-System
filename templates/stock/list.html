@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Stock{% endblock %}
+{% block page_title %}Stock Levels{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <strong><i class="bi bi-box-seam me-1"></i> All Stock</strong>
+    <div class="d-flex gap-2">
+      <span class="badge bg-danger py-2">⚠ Low Stock</span>
+      <span class="badge bg-success py-2">✓ OK</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Medicine</th>
+          <th>Category</th>
+          <th>Batch #</th>
+          <th>Quantity</th>
+          <th>Reorder Level</th>
+          <th>Expiry</th>
+          <th>Last Updated</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for med, stk in items %}
+        <tr class="{{ 'table-danger' if med.is_low_stock else '' }}">
+          <td>
+            <strong>{{ med.name }}</strong>
+            {% if med.generic_name %}
+              <br><small class="text-muted">{{ med.generic_name }}</small>
+            {% endif %}
+          </td>
+          <td>{{ med.category or '—' }}</td>
+          <td><code>{{ stk.batch_number or '—' }}</code></td>
+          <td>
+            {% if med.is_low_stock %}
+              <span class="badge bg-danger fs-6">{{ stk.quantity }}</span>
+              <small class="text-danger ms-1">Low!</small>
+            {% else %}
+              <span class="badge bg-success fs-6">{{ stk.quantity }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ med.reorder_level }}</td>
+          <td>
+            {% if med.expiry_date %}
+              {% if med.is_expired %}
+                <span class="text-danger fw-bold small">{{ med.expiry_date }} EXPIRED</span>
+              {% elif med.is_expiring_soon %}
+                <span class="text-warning fw-bold small">{{ med.expiry_date }} ⚠ Soon</span>
+              {% else %}
+                <span class="small">{{ med.expiry_date }}</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-muted small">{{ stk.last_updated.strftime('%d %b %Y') if stk.last_updated else '—' }}</td>
+          <td>
+            <a href="{{ url_for('stock.update', medicine_id=med.id) }}"
+               class="btn btn-sm btn-outline-primary">Update</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">No stock records found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

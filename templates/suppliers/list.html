@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Suppliers{% endblock %}
+{% block page_title %}Suppliers{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <strong><i class="bi bi-truck me-1"></i> All Suppliers</strong>
+    <a href="{{ url_for('suppliers.add') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg"></i> Add Supplier
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Contact Person</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Medicines</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in suppliers %}
+        <tr>
+          <td class="text-muted small">{{ s.id }}</td>
+          <td><strong>{{ s.name }}</strong></td>
+          <td>{{ s.contact_person or '—' }}</td>
+          <td>{{ s.phone or '—' }}</td>
+          <td>{{ s.email or '—' }}</td>
+          <td><span class="badge bg-secondary">{{ s.medicines|length }}</span></td>
+          <td>
+            <a href="{{ url_for('suppliers.edit', id=s.id) }}"
+               class="btn btn-sm btn-outline-primary">Edit</a>
+            <form method="POST" action="{{ url_for('suppliers.delete', id=s.id) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('Delete {{ s.name }}? This will unlink their medicines.')">
+              <button class="btn btn-sm btn-outline-danger">Del</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">
+            No suppliers yet. <a href="{{ url_for('suppliers.add') }}">Add one</a>.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

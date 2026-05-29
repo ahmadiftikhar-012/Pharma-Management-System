@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – PharmaMS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card stat-card p-3 d-flex flex-row align-items-center gap-3">
+      <div class="icon bg-primary bg-opacity-10 text-primary">
+        <i class="bi bi-capsule"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold">{{ total_medicines }}</div>
+        <div class="text-muted small">Total Medicines</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card p-3 d-flex flex-row align-items-center gap-3">
+      <div class="icon bg-success bg-opacity-10 text-success">
+       <i class="bi bi-cash-stack"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold">Rs. {{ "%.0f"|format(todays_revenue) }}</div>
+        <div class="text-muted small">Today's Revenue ({{ todays_sales_count }} sales)</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card p-3 d-flex flex-row align-items-center gap-3">
+      <div class="icon bg-danger bg-opacity-10 text-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold">{{ low_stock_count }}</div>
+        <div class="text-muted small">Low Stock Alerts</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card p-3 d-flex flex-row align-items-center gap-3">
+      <div class="icon bg-warning bg-opacity-10 text-warning">
+        <i class="bi bi-calendar-x"></i>
+      </div>
+      <div>
+        <div class="fs-4 fw-bold">{{ expiring_count }}</div>
+        <div class="text-muted small">Expiring (30 days)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Low Stock Table -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-exclamation-circle text-danger me-1"></i>Low Stock</strong>
+        <a href="{{ url_for('stock.list') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Medicine</th><th>Stock</th><th>Reorder At</th></tr>
+          </thead>
+          <tbody>
+            {% for med, stk in low_stock_items %}
+            <tr>
+              <td>{{ med.name }}</td>
+              <td><span class="badge bg-danger">{{ stk.quantity }}</span></td>
+              <td class="text-muted">{{ med.reorder_level }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="text-center text-muted py-3">All stocks are healthy ✓</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Sales -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <strong><i class="bi bi-receipt text-success me-1"></i>Recent Sales</strong>
+        <a href="{{ url_for('sales.list') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>#</th><th>Customer</th><th>Total</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            {% for sale in recent_sales %}
+            <tr>
+              <td>{{ sale.id }}</td>
+              <td>{{ sale.customer_name or 'Walk-in' }}</td>
+              <td>Rs. {{ "%.0f"|format(sale.total_amount) }}</td>
+              <td class="text-muted small">{{ sale.sale_date.strftime('%d %b %H:%M') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted py-3">No sales yet today.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

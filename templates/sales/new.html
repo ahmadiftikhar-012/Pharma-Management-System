@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}New Sale{% endblock %}
+{% block page_title %}New Sale / Billing{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <form method="POST" id="saleForm">
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Customer Name</label>
+              <input type="text" name="customer_name" class="form-control" placeholder="Walk-in">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Payment Method</label>
+              <select name="payment_method" class="form-select">
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="online">Online</option>
+              </select>
+            </div>
+          </div>
+
+          <hr>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Items</strong>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">
+              <i class="bi bi-plus"></i> Add Item
+            </button>
+          </div>
+
+          <div id="items-container">
+            <!-- rows added by JS -->
+          </div>
+
+          <hr>
+          <div class="text-end mb-3">
+            <strong>Total: Rs. <span id="grand-total">0.00</span></strong>
+          </div>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-lg"></i> Process Sale
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// Build simple lookup
+const medData = {};
+{% for m in medicines %}
+medData[{{ m.id }}] = { name: "{{ m.name }}", price: {{ m.price }},
+  stock: {{ m.stock.quantity if m.stock else 0 }} };
+{% endfor %}
+
+let rowCount = 0;
+
+function addRow() {
+  rowCount++;
+  const div = document.createElement('div');
+  div.className = 'row g-2 mb-2 item-row align-items-end';
+  div.id = 'row-' + rowCount;
+  div.innerHTML = `
+    <div class="col-md-5">
+      <label class="form-label small">Medicine</label>
+      <select name="medicine_id[]" class="form-select form-select-sm med-select"
+              onchange="onMedChange(this, ${rowCount})" required>
+        <option value="">— Select —</option>
+        {% for m in medicines %}
+        <option value="{{ m.id }}">{{ m.name }} ({{ m.stock.quantity if m.stock else 0 }} left)</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">Qty</label>
+      <input type="number" name="quantity[]" class="form-control form-control-sm qty-input"
+             id="qty-${rowCount}" min="1" value="1" oninput="calcTotal()" required>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">Unit Price</label>
+      <input type="text" class="form-control form-control-sm" id="price-${rowCount}" readonly>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">Subtotal</label>
+      <input type="text" class="form-control form-control-sm" id="sub-${rowCount}" readonly>
+    </div>
+    <div class="col-md-1">
+      <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="removeRow(${rowCount})"><i class="bi bi-trash"></i></button>
+    </div>`;
+  document.getElementById('items-container').appendChild(div);
+}
+
+function onMedChange(sel, n) {
+  const id = parseInt(sel.value);
+  const med = medData[id];
+  document.getElementById('price-' + n).value = med ? 'Rs. ' + med.price : '';
+  calcTotal();
+}
+
+function calcTotal() {
+  let total = 0;
+  document.querySelectorAll('.item-row').forEach(row => {
+    const n = row.id.split('-')[1];
+    const sel = row.querySelector('.med-select');
+    const qty = parseInt(document.getElementById('qty-' + n)?.value) || 0;
+    const id  = parseInt(sel?.value);
+    const med = medData[id];
+    if (med) {
+      const sub = med.price * qty;
+      total += sub;
+      const subEl = document.getElementById('sub-' + n);
+      if (subEl) subEl.value = 'Rs. ' + sub.toFixed(2);
+    }
+  });
+  document.getElementById('grand-total').textContent = total.toFixed(2);
+}
+
+function removeRow(n) {
+  document.getElementById('row-' + n)?.remove();
+  calcTotal();
+}
+
+// Start with one row
+addRow();
+</script>
+{% endblock %}
